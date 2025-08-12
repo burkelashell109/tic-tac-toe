@@ -518,8 +518,18 @@ class _TicTacToeGameState extends State<TicTacToeGame> {
   }
 
   void _updateTurnOrder(String previousStatus) {
-    if (previousStatus.contains('win') || previousStatus.contains('draw')) {
-      _gameState.updateFirstPlayer();
+    if (previousStatus.contains('You win')) {
+      // Player won - Computer goes first next game
+      _gameState.playerGoesFirst = false;
+      _gameState.isPlayerTurn = false;
+    } else if (previousStatus.contains('Computer wins')) {
+      // Computer won - Player goes first next game
+      _gameState.playerGoesFirst = true;
+      _gameState.isPlayerTurn = true;
+    } else if (previousStatus.contains('draw')) {
+      // Tie - Other player goes first next game
+      _gameState.playerGoesFirst = !_gameState.playerGoesFirst;
+      _gameState.isPlayerTurn = _gameState.playerGoesFirst;
     }
   }
 }
