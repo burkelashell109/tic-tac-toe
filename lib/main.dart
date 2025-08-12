@@ -277,13 +277,16 @@ class _TicTacToeGameState extends State<TicTacToeGame> {
 
   Widget _buildStatusDisplay() {
     return Container(
-      padding: const EdgeInsets.only(top: 70, bottom: 20), // Moved down by 50px from original 20px
-      child: Text(
-        _getStatusText(),
-        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-          fontSize: (Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24) * 1.5,
-          fontWeight: FontWeight.bold,
-          color: _getStatusColor(),
+      height: 90, // Fixed height to prevent board movement
+      child: Center(
+        child: Text(
+          _getStatusText(),
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontSize: (Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24) * 1.5,
+            fontWeight: FontWeight.bold,
+            color: _getStatusColor(),
+          ),
         ),
       ),
     );
