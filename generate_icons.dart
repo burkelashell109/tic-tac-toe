@@ -120,20 +120,24 @@ class SimpleIconGenerator {
       }
     }
     
-    // Draw X in top-left (white)
+    // Create a realistic "game in progress" pattern
+    // This represents a strategic mid-game position where both players
+    // have made tactical moves and the game could go either way
+    
+    // X in top-left corner (opening move)
     _drawX(imageData, 0, 0, third, width, height, [255, 255, 255, 255]);
     
-    // Draw O in top-center (orange)
-    _drawO(imageData, 0, 1, third, width, height, [255, 87, 34, 255]);
+    // O in center (classic counter-strategy)
+    _drawO(imageData, 1, 1, third, width, height, [255, 87, 34, 255]);
     
-    // Draw X in center (white)
-    _drawX(imageData, 1, 1, third, width, height, [255, 255, 255, 255]);
+    // X in top-right (blocking potential O win)
+    _drawX(imageData, 0, 2, third, width, height, [255, 255, 255, 255]);
     
-    // Draw O in bottom-left (orange)
+    // O in bottom-left (creating threat)
     _drawO(imageData, 2, 0, third, width, height, [255, 87, 34, 255]);
     
-    // Draw X in bottom-right (white)
-    _drawX(imageData, 2, 2, third, width, height, [255, 255, 255, 255]);
+    // X in middle-right (strategic positioning)
+    _drawX(imageData, 1, 2, third, width, height, [255, 255, 255, 255]);
     
     // Create a simple PNG-like structure (this is very basic)
     // For production, use a proper image library like 'image' package
