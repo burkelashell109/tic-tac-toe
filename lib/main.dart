@@ -635,8 +635,13 @@ class _TicTacToeGameState extends State<TicTacToeGame> {
       fontWeight: FontWeight.bold,
     );
 
+    final countdownStyle = Theme.of(context).textTheme.headlineSmall?.copyWith(
+      fontSize: (Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24) * 0.9,
+      fontWeight: FontWeight.bold,
+    );
+
     if (_gameState.isCountingDown && _gameState.gameStatus.isNotEmpty) {
-      // Mixed color message: win message in color + countdown in black
+      // Mixed color message: win message in color + countdown in black (smaller)
       Color winColor;
       if (_gameState.isPlayerWin) {
         winColor = UIConstants.playerColor;
@@ -656,7 +661,7 @@ class _TicTacToeGameState extends State<TicTacToeGame> {
             ),
             TextSpan(
               text: '\nNext game in ${_gameState.countdownSeconds}...',
-              style: baseStyle?.copyWith(color: Colors.black),
+              style: countdownStyle?.copyWith(color: Colors.black),
             ),
           ],
         ),
