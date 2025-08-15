@@ -15,6 +15,12 @@ class AnimationManager {
   late Animation<double> _pulseAnimation;
   late Animation<Color?> _backgroundColorAnimation;
   
+  // Win celebration animations
+  late AnimationController _celebrationGlowController;
+  late AnimationController _celebrationParticleController;
+  late Animation<double> _glowAnimation;
+  late Animation<double> _particleAnimation;
+  
   /// Initializes all animation controllers
   void initialize(TickerProvider vsync) {
     // Cell animations
@@ -79,6 +85,33 @@ class AnimationManager {
       parent: _backgroundController,
       curve: Curves.easeInOut,
     ));
+    
+    // Win celebration animations
+    _celebrationGlowController = AnimationController(
+      duration: UIConstants.celebrationGlowDuration,
+      vsync: vsync,
+    );
+    
+    _celebrationParticleController = AnimationController(
+      duration: UIConstants.celebrationParticleDuration,
+      vsync: vsync,
+    );
+    
+    _glowAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _celebrationGlowController,
+      curve: Curves.easeInOut,
+    ));
+    
+    _particleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _celebrationParticleController,
+      curve: Curves.easeOut,
+    ));
   }
   
   /// Disposes all animation controllers
@@ -89,6 +122,8 @@ class AnimationManager {
     _colorTransitionController.dispose();
     _pulseController.dispose();
     _backgroundController.dispose();
+    _celebrationGlowController.dispose();
+    _celebrationParticleController.dispose();
   }
   
   /// Animates a cell placement
@@ -114,10 +149,29 @@ class AnimationManager {
     }
   }
   
+  /// Starts the win celebration animations
+  Future<void> startWinCelebration() async {
+    // Start glow animation (pulsing effect)
+    _celebrationGlowController.repeat(reverse: true);
+    
+    // Start particle animation after a short delay
+    await Future.delayed(const Duration(milliseconds: 300));
+    await _celebrationParticleController.forward();
+  }
+  
+  /// Stops the win celebration animations
+  void stopWinCelebration() {
+    _celebrationGlowController.stop();
+    _celebrationGlowController.reset();
+    _celebrationParticleController.reset();
+  }
+  
   // Getters for animations
   List<Animation<double>> get scaleAnimations => _scaleAnimations;
   List<Animation<double>> get opacityAnimations => _opacityAnimations;
   Animation<Color?> get statusColorAnimation => _statusColorAnimation;
   Animation<double> get pulseAnimation => _pulseAnimation;
   Animation<Color?> get backgroundColorAnimation => _backgroundColorAnimation;
+  Animation<double> get glowAnimation => _glowAnimation;
+  Animation<double> get particleAnimation => _particleAnimation;
 }

@@ -122,6 +122,9 @@ class GameController {
     await Future.delayed(UIConstants.winningLineDelay);
     _state.showWinningLine = true;
     _onStateChanged();
+    
+    // Start celebration animations after winning line appears
+    await _animationManager.startWinCelebration();
   }
   
   /// Switches to computer turn
@@ -162,6 +165,7 @@ class GameController {
     
     // Reset all animations
     _animationManager.resetCellAnimations();
+    _animationManager.stopWinCelebration();
     
     // Animate turn transition for new game
     _animationManager.animateTurnTransition(_state.isPlayerTurn);

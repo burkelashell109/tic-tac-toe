@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/game_state.dart';
 import '../services/animation_manager.dart';
 import '../constants/game_constants.dart';
+import 'celebration_effects.dart';
 
 /// Widget that displays the tic-tac-toe game board
 class GameBoard extends StatelessWidget {
@@ -30,6 +31,8 @@ class GameBoard extends StatelessWidget {
               _buildGrid(),
               if (gameState.showWinningLine && gameState.winningCombination != null)
                 _buildWinningLine(),
+              if (gameState.showWinningLine && gameState.winningCombination != null)
+                _buildCelebrationEffects(),
             ],
           ),
         ),
@@ -52,10 +55,13 @@ class GameBoard extends StatelessWidget {
 
   /// Builds an individual cell
   Widget _buildCell(int index) {
+    final isWinningCell = gameState.winningCombination?.contains(index) ?? false;
+    
     return AnimatedBuilder(
       animation: Listenable.merge([
         animationManager.scaleAnimations[index],
         animationManager.opacityAnimations[index],
+        if (isWinningCell) animationManager.glowAnimation,
       ]),
       builder: (context, child) {
         return GestureDetector(
@@ -64,6 +70,17 @@ class GameBoard extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.grey[200],
               borderRadius: BorderRadius.circular(8),
+              boxShadow: isWinningCell && gameState.showWinningLine
+                  ? [
+                      BoxShadow(
+                        color: (gameState.board[index] == GameConstants.playerSymbol 
+                            ? UIConstants.playerColor 
+                            : UIConstants.computerColor).withOpacity(0.3 + animationManager.glowAnimation.value * 0.4),
+                        blurRadius: 8 + animationManager.glowAnimation.value * 12,
+                        spreadRadius: 2 + animationManager.glowAnimation.value * 3,
+                      ),
+                    ]
+                  : null,
             ),
             child: Center(
               child: Transform.scale(
@@ -80,6 +97,16 @@ class GameBoard extends StatelessWidget {
                           ? UIConstants.playerColor 
                           : UIConstants.computerColor,
                       height: 1.0, // Reduces line height to minimize baseline spacing
+                      shadows: isWinningCell && gameState.showWinningLine
+                          ? [
+                              Shadow(
+                                color: (gameState.board[index] == GameConstants.playerSymbol 
+                                    ? UIConstants.playerColor 
+                                    : UIConstants.computerColor).withOpacity(0.5 + animationManager.glowAnimation.value * 0.5),
+                                blurRadius: 4 + animationManager.glowAnimation.value * 8,
+                              ),
+                            ]
+                          : null,
                     ),
                   ),
                 ),
@@ -101,6 +128,21 @@ class GameBoard extends StatelessWidget {
         winningCombination: gameState.winningCombination!,
         color: gameState.isPlayerWin ? UIConstants.playerColor : UIConstants.computerColor,
       ),
+    );
+  }
+  
+  /// Builds the celebration effects overlay
+  Widget _buildCelebrationEffects() {
+    if (gameState.winningCombination == null) return const SizedBox.shrink();
+    
+    final winningSymbol = gameState.isPlayerWin ? GameConstants.playerSymbol : GameConstants.computerSymbol;
+    final symbolColor = gameState.isPlayerWin ? UIConstants.playerColor : UIConstants.computerColor;
+    
+    return CelebrationEffects(
+      particleAnimation: animationManager.particleAnimation,
+      winningPositions: gameState.winningCombination!,
+      winningSymbol: winningSymbol,
+      symbolColor: symbolColor,
     );
   }
 }

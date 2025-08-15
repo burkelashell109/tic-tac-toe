@@ -21,6 +21,8 @@ class UIConstants {
   static const Duration cellAnimationDuration = Duration(milliseconds: 400);
   static const Duration turnTransitionDuration = Duration(milliseconds: 500);
   static const Duration pulseAnimationDuration = Duration(seconds: 2);
+  static const Duration celebrationGlowDuration = Duration(milliseconds: 1500);
+  static const Duration celebrationParticleDuration = Duration(milliseconds: 2000);
   
   // Text scaling
   static const double baseTextScale = 1.5;
