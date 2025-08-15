@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/game_state.dart';
 import '../services/animation_manager.dart';
@@ -61,53 +62,68 @@ class GameBoard extends StatelessWidget {
       animation: Listenable.merge([
         animationManager.scaleAnimations[index],
         animationManager.opacityAnimations[index],
+        animationManager.flipAnimations[index],
         if (isWinningCell) animationManager.glowAnimation,
       ]),
       builder: (context, child) {
+        // Calculate 3D flip rotation
+        final flipProgress = animationManager.flipAnimations[index].value;
+        final isFlipping = flipProgress > 0.0;
+        final showBack = flipProgress > 0.5;
+        final rotationY = flipProgress * math.pi;
+        
         return GestureDetector(
           onTap: () => onCellTap(index),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: isWinningCell && gameState.showWinningLine
-                  ? [
-                      BoxShadow(
-                        color: (gameState.board[index] == GameConstants.playerSymbol 
-                            ? UIConstants.playerColor 
-                            : UIConstants.computerColor).withOpacity(0.3 + animationManager.glowAnimation.value * 0.4),
-                        blurRadius: 8 + animationManager.glowAnimation.value * 12,
-                        spreadRadius: 2 + animationManager.glowAnimation.value * 3,
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Center(
-              child: Transform.scale(
-                scale: animationManager.scaleAnimations[index].value,
-                child: Opacity(
-                  opacity: animationManager.opacityAnimations[index].value,
-                  child: Text(
-                    gameState.board[index],
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 96,
-                      fontWeight: FontWeight.bold,
-                      color: gameState.board[index] == GameConstants.playerSymbol 
-                          ? UIConstants.playerColor 
-                          : UIConstants.computerColor,
-                      height: 1.0, // Reduces line height to minimize baseline spacing
-                      shadows: isWinningCell && gameState.showWinningLine
-                          ? [
-                              Shadow(
-                                color: (gameState.board[index] == GameConstants.playerSymbol 
-                                    ? UIConstants.playerColor 
-                                    : UIConstants.computerColor).withOpacity(0.5 + animationManager.glowAnimation.value * 0.5),
-                                blurRadius: 4 + animationManager.glowAnimation.value * 8,
-                              ),
-                            ]
-                          : null,
-                    ),
+          child: Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.001) // Add perspective
+              ..rotateY(rotationY),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: isWinningCell && gameState.showWinningLine
+                    ? [
+                        BoxShadow(
+                          color: (gameState.board[index] == GameConstants.playerSymbol 
+                              ? UIConstants.playerColor 
+                              : UIConstants.computerColor).withOpacity(0.3 + animationManager.glowAnimation.value * 0.4),
+                          blurRadius: 8 + animationManager.glowAnimation.value * 12,
+                          spreadRadius: 2 + animationManager.glowAnimation.value * 3,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Center(
+                child: Transform.scale(
+                  scale: animationManager.scaleAnimations[index].value,
+                  child: Opacity(
+                    opacity: animationManager.opacityAnimations[index].value,
+                    child: showBack || !isFlipping
+                        ? Text(
+                            showBack ? '' : gameState.board[index], // Show blank when flipped to back
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 96,
+                              fontWeight: FontWeight.bold,
+                              color: gameState.board[index] == GameConstants.playerSymbol 
+                                  ? UIConstants.playerColor 
+                                  : UIConstants.computerColor,
+                              height: 1.0, // Reduces line height to minimize baseline spacing
+                              shadows: isWinningCell && gameState.showWinningLine
+                                  ? [
+                                      Shadow(
+                                        color: (gameState.board[index] == GameConstants.playerSymbol 
+                                            ? UIConstants.playerColor 
+                                            : UIConstants.computerColor).withOpacity(0.5 + animationManager.glowAnimation.value * 0.5),
+                                        blurRadius: 4 + animationManager.glowAnimation.value * 8,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                          )
+                        : const SizedBox.shrink(), // Hide during flip transition
                   ),
                 ),
               ),

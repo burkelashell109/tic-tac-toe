@@ -114,7 +114,7 @@ class GameController {
   void _handleDraw() {
     _state.gameStatus = UIConstants.drawMessage;
     _state.tiesScore++;
-    _startAutoRestart();
+    _startAutoRestart(UIConstants.autoRestartSecondsForTie);
   }
   
   /// Shows winning line after a delay
@@ -135,9 +135,9 @@ class GameController {
   }
   
   /// Starts the auto-restart countdown
-  void _startAutoRestart() {
+  void _startAutoRestart([int? countdownDuration]) {
     _state.isCountingDown = true;
-    _state.countdownSeconds = UIConstants.autoRestartSeconds;
+    _state.countdownSeconds = countdownDuration ?? UIConstants.autoRestartSeconds;
     _onStateChanged();
     
     _startCountdownTimer();
@@ -152,20 +152,29 @@ class GameController {
       
       if (_state.countdownSeconds <= 0) {
         timer.cancel();
-        resetGame();
+        resetGame(); // Note: Fire and forget - animation runs independently
       }
     });
   }
   
   /// Resets the game for a new round
-  void resetGame() {
+  Future<void> resetGame() async {
     final previousStatus = _state.gameStatus;
+    final winningPositions = _state.winningCombination;
+    
+    // Stop celebration first
+    _animationManager.stopWinCelebration();
+    
+    // Animate board reset with 3D flip effect
+    await _animationManager.animateBoardReset(winningPositions);
+    
+    // Reset game state
     _state.reset();
     _updateTurnOrder(previousStatus);
     
     // Reset all animations
     _animationManager.resetCellAnimations();
-    _animationManager.stopWinCelebration();
+    _animationManager.resetFlipAnimations();
     
     // Animate turn transition for new game
     _animationManager.animateTurnTransition(_state.isPlayerTurn);

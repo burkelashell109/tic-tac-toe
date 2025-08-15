@@ -16,6 +16,7 @@ class UIConstants {
   static const Duration winningLineDelay = Duration(milliseconds: 500);
   static const Duration countdownInterval = Duration(seconds: 1);
   static const int autoRestartSeconds = 3;
+  static const int autoRestartSecondsForTie = 2;
   
   // Animation
   static const Duration cellAnimationDuration = Duration(milliseconds: 400);
@@ -23,6 +24,8 @@ class UIConstants {
   static const Duration pulseAnimationDuration = Duration(seconds: 2);
   static const Duration celebrationGlowDuration = Duration(milliseconds: 1500);
   static const Duration celebrationParticleDuration = Duration(milliseconds: 2000);
+  static const Duration resetFlipDuration = Duration(milliseconds: 300);
+  static const Duration resetSequenceDelay = Duration(milliseconds: 120);
   
   // Text scaling
   static const double baseTextScale = 1.5;

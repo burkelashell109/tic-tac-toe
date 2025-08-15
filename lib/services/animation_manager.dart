@@ -21,6 +21,10 @@ class AnimationManager {
   late Animation<double> _glowAnimation;
   late Animation<double> _particleAnimation;
   
+  // Board reset animations
+  late List<AnimationController> _resetFlipControllers;
+  late List<Animation<double>> _resetFlipAnimations;
+  
   /// Initializes all animation controllers
   void initialize(TickerProvider vsync) {
     // Cell animations
@@ -112,11 +116,28 @@ class AnimationManager {
       parent: _celebrationParticleController,
       curve: Curves.easeOut,
     ));
+    
+    // Board reset flip animations
+    _resetFlipControllers = List.generate(GameConstants.boardSize, (index) => AnimationController(
+      duration: UIConstants.resetFlipDuration,
+      vsync: vsync,
+    ));
+    
+    _resetFlipAnimations = _resetFlipControllers.map((controller) => Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeInOut,
+    ))).toList();
   }
   
   /// Disposes all animation controllers
   void dispose() {
     for (var controller in _cellControllers) {
+      controller.dispose();
+    }
+    for (var controller in _resetFlipControllers) {
       controller.dispose();
     }
     _colorTransitionController.dispose();
@@ -166,6 +187,50 @@ class AnimationManager {
     _celebrationParticleController.reset();
   }
   
+  /// Animates board reset with 3D flip effect in sequence
+  Future<void> animateBoardReset(List<int>? winningPositions) async {
+    // First, flip winning cells if there are any
+    if (winningPositions != null && winningPositions.isNotEmpty) {
+      for (int i = 0; i < winningPositions.length; i++) {
+        final position = winningPositions[i];
+        _resetFlipControllers[position].forward();
+        if (i < winningPositions.length - 1) {
+          await Future.delayed(UIConstants.resetSequenceDelay);
+        }
+      }
+      await Future.delayed(UIConstants.resetSequenceDelay);
+    }
+    
+    // Then flip remaining cells row by row
+    final remainingPositions = <int>[];
+    for (int i = 0; i < GameConstants.boardSize; i++) {
+      if (winningPositions == null || !winningPositions.contains(i)) {
+        remainingPositions.add(i);
+      }
+    }
+    
+    // Group by rows and flip row by row
+    for (int row = 0; row < GameConstants.gridSize; row++) {
+      final rowPositions = remainingPositions.where((pos) => pos ~/ GameConstants.gridSize == row).toList();
+      
+      // Flip all cells in current row simultaneously
+      for (final position in rowPositions) {
+        _resetFlipControllers[position].forward();
+      }
+      
+      if (row < GameConstants.gridSize - 1 && rowPositions.isNotEmpty) {
+        await Future.delayed(UIConstants.resetSequenceDelay);
+      }
+    }
+  }
+  
+  /// Resets all flip animations
+  void resetFlipAnimations() {
+    for (var controller in _resetFlipControllers) {
+      controller.reset();
+    }
+  }
+  
   // Getters for animations
   List<Animation<double>> get scaleAnimations => _scaleAnimations;
   List<Animation<double>> get opacityAnimations => _opacityAnimations;
@@ -174,4 +239,5 @@ class AnimationManager {
   Animation<Color?> get backgroundColorAnimation => _backgroundColorAnimation;
   Animation<double> get glowAnimation => _glowAnimation;
   Animation<double> get particleAnimation => _particleAnimation;
+  List<Animation<double>> get flipAnimations => _resetFlipAnimations;
 }
