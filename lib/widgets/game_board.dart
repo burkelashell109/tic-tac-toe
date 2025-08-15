@@ -72,12 +72,14 @@ class GameBoard extends StatelessWidget {
                   opacity: animationManager.opacityAnimations[index].value,
                   child: Text(
                     gameState.board[index],
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 48,
+                      fontSize: 96,
                       fontWeight: FontWeight.bold,
                       color: gameState.board[index] == GameConstants.playerSymbol 
                           ? UIConstants.playerColor 
                           : UIConstants.computerColor,
+                      height: 1.0, // Reduces line height to minimize baseline spacing
                     ),
                   ),
                 ),
