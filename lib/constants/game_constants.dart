@@ -27,6 +27,11 @@ class UIConstants {
   static const Duration resetFlipDuration = Duration(milliseconds: 300);
   static const Duration resetSequenceDelay = Duration(milliseconds: 120);
   
+  // Splash screen
+  static const Duration splashMoveDuration = Duration(seconds: 1);
+  static const Duration splashTransitionDuration = Duration(milliseconds: 800);
+  static const double splashBoardSize = 200.0;
+  
   // Text scaling
   static const double baseTextScale = 1.5;
   static const double countdownTextScale = 0.9;

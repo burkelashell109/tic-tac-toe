@@ -4,6 +4,7 @@ import 'services/animation_manager.dart';
 import 'widgets/game_board.dart';
 import 'widgets/status_display.dart';
 import 'widgets/score_display.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const TicTacToeApp());
@@ -21,8 +22,34 @@ class TicTacToeApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const TicTacToeGame(),
+      home: const AppWrapper(),
     );
+  }
+}
+
+class AppWrapper extends StatefulWidget {
+  const AppWrapper({super.key});
+
+  @override
+  State<AppWrapper> createState() => _AppWrapperState();
+}
+
+class _AppWrapperState extends State<AppWrapper> {
+  bool _showSplash = true;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_showSplash) {
+      return SplashScreen(
+        onComplete: () {
+          setState(() {
+            _showSplash = false;
+          });
+        },
+      );
+    }
+    
+    return const TicTacToeGame();
   }
 }
 
