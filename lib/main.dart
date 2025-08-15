@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 // Uncomment the next line to see the icon generator
 // import 'icon_generator.dart';
@@ -40,8 +41,12 @@ class GameState {
   bool isCountingDown = false;
   List<int>? winningCombination;
   bool showWinningLine = false;
+  
+  // Animation states
+  List<bool> cellAnimating = List.filled(9, false);
+  bool isAnimating = false;
 
-  bool get isGameActive => gameStatus.isEmpty && !isCountingDown;
+  bool get isGameActive => gameStatus.isEmpty && !isCountingDown && !isAnimating;
   bool get isPlayerWin => gameStatus.contains('You win');
   bool get isComputerWin => gameStatus.contains('Computer wins');
   bool get isDraw => gameStatus.contains('draw');
@@ -54,6 +59,8 @@ class GameState {
     countdownSeconds = 0;
     winningCombination = null;
     showWinningLine = false;
+    cellAnimating = List.filled(9, false);
+    isAnimating = false;
   }
   
   void switchTurns() {
@@ -539,20 +546,52 @@ class TicTacToeGame extends StatefulWidget {
   State<TicTacToeGame> createState() => _TicTacToeGameState();
 }
 
-class _TicTacToeGameState extends State<TicTacToeGame> {
+class _TicTacToeGameState extends State<TicTacToeGame> with TickerProviderStateMixin {
   final GameState _gameState = GameState();
   Timer? _countdownTimer;
+  
+  // Animation controllers for each cell
+  late List<AnimationController> _animationControllers;
+  late List<Animation<double>> _scaleAnimations;
+  late List<Animation<double>> _opacityAnimations;
 
   @override
   void initState() {
     super.initState();
+    _initializeAnimations();
     _initializeGame();
   }
 
   @override
   void dispose() {
     _countdownTimer?.cancel();
+    for (var controller in _animationControllers) {
+      controller.dispose();
+    }
     super.dispose();
+  }
+  
+  void _initializeAnimations() {
+    _animationControllers = List.generate(9, (index) => AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    ));
+    
+    _scaleAnimations = _animationControllers.map((controller) => Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: controller,
+      curve: Curves.elasticOut,
+    ))).toList();
+    
+    _opacityAnimations = _animationControllers.map((controller) => Tween<double>(
+      begin: 0.2,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: controller,
+      curve: Curves.easeOut,
+    ))).toList();
   }
 
   void _initializeGame() {
@@ -762,13 +801,26 @@ class _TicTacToeGameState extends State<TicTacToeGame> {
           borderRadius: BorderRadius.circular(UIConstants.borderRadius),
         ),
         child: Center(
-          child: Text(
-            _gameState.board[index],
-            style: Theme.of(context).textTheme.displayLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: _getCellColor(index),
-            ),
-          ),
+          child: _gameState.board[index].isEmpty 
+            ? const SizedBox() // Empty cell
+            : AnimatedBuilder(
+                animation: _animationControllers[index],
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _scaleAnimations[index].value,
+                    child: Opacity(
+                      opacity: _opacityAnimations[index].value,
+                      child: Text(
+                        _gameState.board[index],
+                        style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: _getCellColor(index),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
         ),
       ),
     );
@@ -793,25 +845,47 @@ class _TicTacToeGameState extends State<TicTacToeGame> {
     );
   }
 
+  // Animation Methods
+  Future<void> _animateSymbolPlacement(int index) async {
+    setState(() {
+      _gameState.cellAnimating[index] = true;
+      _gameState.isAnimating = true;
+    });
+    
+    // Trigger haptic feedback
+    HapticFeedback.lightImpact();
+    
+    // Start the animation
+    await _animationControllers[index].forward();
+    
+    setState(() {
+      _gameState.cellAnimating[index] = false;
+      _gameState.isAnimating = false;
+    });
+  }
+
   // Game Logic Methods
   void _handleCellTap(int index) {
     if (!_canPlayerMove(index)) return;
 
     setState(() {
       _gameState.board[index] = 'X';
-      
+    });
+    
+    // Animate the placement
+    _animateSymbolPlacement(index).then((_) {
+      // Check game state after animation completes
       if (GameLogic.checkWinner(_gameState.board)) {
         _handlePlayerWin();
       } else if (GameLogic.isBoardFull(_gameState.board)) {
         _handleDraw();
       } else {
         _switchToComputerTurn();
+        if (_gameState.isGameActive && !_gameState.isPlayerTurn) {
+          _makeComputerMove();
+        }
       }
     });
-
-    if (_gameState.isGameActive && !_gameState.isPlayerTurn) {
-      _makeComputerMove();
-    }
   }
 
   bool _canPlayerMove(int index) {
@@ -859,15 +933,21 @@ class _TicTacToeGameState extends State<TicTacToeGame> {
     setState(() {
       _gameState.isComputerThinking = false;
       _gameState.board[computerMove] = 'O';
-      
-      if (GameLogic.checkWinner(_gameState.board)) {
-        _handleComputerWin();
-      } else if (GameLogic.isBoardFull(_gameState.board)) {
-        _handleDraw();
-      } else {
-        _gameState.isPlayerTurn = true;
-      }
     });
+    
+    // Animate the computer's move
+    await _animateSymbolPlacement(computerMove);
+    
+    // Check game state after animation completes
+    if (GameLogic.checkWinner(_gameState.board)) {
+      _handleComputerWin();
+    } else if (GameLogic.isBoardFull(_gameState.board)) {
+      _handleDraw();
+    } else {
+      setState(() {
+        _gameState.isPlayerTurn = true;
+      });
+    }
   }
 
   void _handleComputerWin() {
@@ -914,6 +994,11 @@ class _TicTacToeGameState extends State<TicTacToeGame> {
       final previousStatus = _gameState.gameStatus;
       _gameState.reset();
       _updateTurnOrder(previousStatus);
+      
+      // Reset all animations
+      for (var controller in _animationControllers) {
+        controller.reset();
+      }
     });
     
     if (!_gameState.isPlayerTurn) {

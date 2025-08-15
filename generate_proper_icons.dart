@@ -163,8 +163,12 @@ class ProperIconGenerator {
   
   static double cos(double x) {
     // Simple cosine approximation
-    while (x > 3.14159 * 2) x -= 3.14159 * 2;
-    while (x < 0) x += 3.14159 * 2;
+    while (x > 3.14159 * 2) {
+      x -= 3.14159 * 2;
+    }
+    while (x < 0) {
+      x += 3.14159 * 2;
+    }
     
     if (x <= 3.14159 / 2) {
       return 1 - (x * x) / 2 + (x * x * x * x) / 24;
