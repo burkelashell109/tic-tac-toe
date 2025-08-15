@@ -16,25 +16,30 @@ class ScoreDisplay extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildScoreColumn(
-            context,
-            'You (X)',
-            gameState.playerScore,
-            UIConstants.playerColor,
+          Expanded(
+            child: _buildScoreColumn(
+              context,
+              'You',
+              gameState.playerScore,
+              UIConstants.playerColor,
+            ),
           ),
-          _buildScoreColumn(
-            context,
-            'Ties',
-            gameState.tiesScore,
-            Colors.black,
+          Expanded(
+            child: _buildScoreColumn(
+              context,
+              'Ties',
+              gameState.tiesScore,
+              Colors.black,
+            ),
           ),
-          _buildScoreColumn(
-            context,
-            'Computer (O)',
-            gameState.computerScore,
-            UIConstants.computerColor,
+          Expanded(
+            child: _buildScoreColumn(
+              context,
+              'Computer',
+              gameState.computerScore,
+              UIConstants.computerColor,
+            ),
           ),
         ],
       ),
@@ -48,24 +53,29 @@ class ScoreDisplay extends StatelessWidget {
     int score,
     Color color,
   ) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontSize: (Theme.of(context).textTheme.titleMedium?.fontSize ?? 16) * UIConstants.scoreTextScale,
-            color: label == 'Ties' ? Colors.black : null,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontSize: (Theme.of(context).textTheme.titleMedium?.fontSize ?? 16) * UIConstants.scoreLabelTextScale,
+              color: label == 'Ties' ? Colors.black : null,
+            ),
           ),
-        ),
-        Text(
-          '$score',
-          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-            fontSize: (Theme.of(context).textTheme.headlineLarge?.fontSize ?? 32) * UIConstants.scoreTextScale,
-            color: color,
-            fontWeight: FontWeight.bold,
+          Text(
+            '$score',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+              fontSize: (Theme.of(context).textTheme.headlineLarge?.fontSize ?? 32) * UIConstants.scoreTextScale,
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

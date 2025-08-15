@@ -26,6 +26,7 @@ class UIConstants {
   static const double baseTextScale = 1.5;
   static const double countdownTextScale = 0.9;
   static const double scoreTextScale = 2.0;
+  static const double scoreLabelTextScale = 1.0;
   
   // Status messages
   static const String playerTurnMessage = "Your Turn";
